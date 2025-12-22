@@ -1,17 +1,65 @@
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { MovieGrid } from '@/components/movies/MovieGrid';
-import { useRecommendationLogic } from '@/hooks/useRecommendationLogic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Database, Film, Users, Star } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Database, Film, Users, Star, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { loadMoviesFromCSV, Movie } from '@/lib/movieData';
+
+const ITEMS_PER_PAGE = 24;
 
 const Dataset = () => {
-  const { allMovies, getStats } = useRecommendationLogic();
-  const stats = getStats();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    loadMoviesFromCSV().then((data) => {
+      setMovies(data);
+      setIsLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const search = searchParams.get('search');
+    if (search) {
+      setSearchQuery(search);
+    }
+  }, [searchParams]);
+
+  const filteredMovies = useMemo(() => {
+    if (!searchQuery.trim()) return movies;
+    const query = searchQuery.toLowerCase();
+    return movies.filter(
+      (movie) =>
+        movie.title.toLowerCase().includes(query) ||
+        movie.genres.some((g) => g.toLowerCase().includes(query))
+    );
+  }, [movies, searchQuery]);
+
+  const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
+  const paginatedMovies = filteredMovies.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+    if (value.trim()) {
+      setSearchParams({ search: value });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   const datasetInfo = [
-    { label: 'Total Movies', value: stats.totalMovies.toLocaleString(), icon: Film },
-    { label: 'Total Users', value: stats.activeUsers.toLocaleString(), icon: Users },
-    { label: 'Total Ratings', value: stats.totalRatings.toLocaleString(), icon: Star },
+    { label: 'Total Movies', value: movies.length.toLocaleString(), icon: Film },
+    { label: 'Total Users', value: '943', icon: Users },
+    { label: 'Total Ratings', value: '100,000', icon: Star },
     { label: 'Dataset', value: 'MovieLens', icon: Database },
   ];
 
@@ -24,12 +72,12 @@ const Dataset = () => {
             Dataset <span className="text-gradient-accent">Explorer</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl opacity-0 animate-slide-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            Explore the MovieLens dataset used to train our recommendation models.
+            Browse all {movies.length.toLocaleString()} movies from the dataset.
           </p>
         </div>
 
         {/* Dataset Info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {datasetInfo.map((item, index) => (
             <Card 
               key={item.label}
@@ -49,31 +97,80 @@ const Dataset = () => {
           ))}
         </div>
 
-        {/* About MovieLens */}
-        <Card className="gradient-card border-border/50 mb-12 opacity-0 animate-slide-up" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
-          <CardHeader>
-            <CardTitle className="text-foreground">About MovieLens Dataset</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground space-y-4">
-            <p>
-              MovieLens is a web-based recommender system and online community that recommends movies 
-              for its users to watch. The dataset used in this project is the{' '}
-              <span className="text-foreground font-medium">MovieLens 100K</span> dataset, which contains:
-            </p>
-            <ul className="list-disc list-inside space-y-2">
-              <li>100,000 ratings from 600+ users on 9,000+ movies</li>
-              <li>Ratings on a scale of 0.5 to 5.0</li>
-              <li>Movie metadata including genres and release year</li>
-              <li>Collected by GroupLens Research at the University of Minnesota</li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Sample Movies */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-foreground">Sample Movies</h2>
-          <MovieGrid movies={allMovies} />
+        {/* Search */}
+        <div className="relative max-w-md mb-8">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search movies by title or genre..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="pl-12 h-12 bg-secondary border-border"
+          />
         </div>
+
+        {/* Results count */}
+        <p className="text-muted-foreground mb-6">
+          Showing {paginatedMovies.length} of {filteredMovies.length} movies
+          {searchQuery && ` matching "${searchQuery}"`}
+        </p>
+
+        {/* Movies Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div key={i} className="aspect-[2/3] bg-secondary/50 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {paginatedMovies.map((movie) => (
+              <Card key={movie.id} className="gradient-card border-border/50 overflow-hidden group hover:scale-105 transition-transform duration-300">
+                <div className="aspect-[2/3] bg-gradient-to-br from-primary/20 to-secondary flex items-center justify-center p-4">
+                  <Film className="h-12 w-12 text-primary/50" />
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-foreground text-sm line-clamp-2">{movie.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{movie.year || 'N/A'}</p>
+                  <div className="flex items-center gap-1 mt-2">
+                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                    <span className="text-xs text-muted-foreground">{movie.rating.toFixed(1)}</span>
+                  </div>
+                  {movie.genres.length > 0 && (
+                    <p className="text-xs text-primary mt-2 line-clamp-1">{movie.genres.slice(0, 2).join(', ')}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-10">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <span className="text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
