@@ -101,13 +101,13 @@ export const RecommendationForm = ({ movies, onSubmit, isLoading }: Recommendati
           <div className="space-y-2">
             <Label htmlFor="userId" className="text-foreground flex items-center gap-2">
               <User className="h-4 w-4" />
-              User ID (1-100)
+              User ID (1-943)
             </Label>
             <Input
               id="userId"
               type="number"
               min="1"
-              max="100"
+              max="943"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               placeholder="Enter user ID..."

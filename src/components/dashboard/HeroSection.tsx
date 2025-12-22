@@ -1,9 +1,20 @@
+import { useState } from 'react';
 import { Search, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export const HeroSection = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/dataset?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <section className="relative min-h-[60vh] flex items-center gradient-hero overflow-hidden">
       {/* Background Effects */}
@@ -60,14 +71,16 @@ export const HeroSection = () => {
           </div>
 
           {/* Quick Search */}
-          <div className="relative max-w-md opacity-0 animate-slide-up" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
+          <form onSubmit={handleSearch} className="relative max-w-md opacity-0 animate-slide-up" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search for a movie..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 h-14 text-lg bg-secondary/50 border-border/50 backdrop-blur-sm focus:border-primary/50"
             />
-          </div>
+          </form>
         </div>
       </div>
     </section>
