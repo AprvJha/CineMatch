@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Database, Film, Users, Star, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { loadMoviesFromCSV, Movie } from '@/lib/movieData';
+import { loadMoviesFromCSV, fetchMoviePosters, Movie } from '@/lib/movieData';
 
 const ITEMS_PER_PAGE = 24;
 
@@ -15,6 +15,8 @@ const Dataset = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [currentPage, setCurrentPage] = useState(1);
+  const [posterCache, setPosterCache] = useState<Map<number, string>>(new Map());
+  const [loadingPosters, setLoadingPosters] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadMoviesFromCSV().then((data) => {
@@ -45,6 +47,34 @@ const Dataset = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  // Fetch posters for visible movies
+  useEffect(() => {
+    const movieIdsToFetch = paginatedMovies
+      .filter((m) => !posterCache.has(m.id) && !loadingPosters.has(m.id))
+      .map((m) => m.id);
+
+    if (movieIdsToFetch.length === 0) return;
+
+    setLoadingPosters((prev) => {
+      const next = new Set(prev);
+      movieIdsToFetch.forEach((id) => next.add(id));
+      return next;
+    });
+
+    fetchMoviePosters(movieIdsToFetch).then((newPosters) => {
+      setPosterCache((prev) => {
+        const next = new Map(prev);
+        newPosters.forEach((url, id) => next.set(id, url));
+        return next;
+      });
+      setLoadingPosters((prev) => {
+        const next = new Set(prev);
+        movieIdsToFetch.forEach((id) => next.delete(id));
+        return next;
+      });
+    });
+  }, [paginatedMovies, posterCache, loadingPosters]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
@@ -124,24 +154,44 @@ const Dataset = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {paginatedMovies.map((movie) => (
-              <Card key={movie.id} className="gradient-card border-border/50 overflow-hidden group hover:scale-105 transition-transform duration-300">
-                <div className="aspect-[2/3] bg-gradient-to-br from-primary/20 to-secondary flex items-center justify-center p-4">
-                  <Film className="h-12 w-12 text-primary/50" />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-foreground text-sm line-clamp-2">{movie.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{movie.year || 'N/A'}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                    <span className="text-xs text-muted-foreground">{movie.rating.toFixed(1)}</span>
+            {paginatedMovies.map((movie) => {
+              const posterUrl = posterCache.get(movie.id);
+              const isLoadingPoster = loadingPosters.has(movie.id);
+
+              return (
+                <Card key={movie.id} className="gradient-card border-border/50 overflow-hidden group hover:scale-105 transition-transform duration-300">
+                  <div className="aspect-[2/3] bg-gradient-to-br from-primary/20 to-secondary relative overflow-hidden">
+                    {posterUrl ? (
+                      <img
+                        src={posterUrl}
+                        alt={movie.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : isLoadingPoster ? (
+                      <div className="w-full h-full flex items-center justify-center animate-pulse">
+                        <Film className="h-12 w-12 text-primary/30" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Film className="h-12 w-12 text-primary/50" />
+                      </div>
+                    )}
                   </div>
-                  {movie.genres.length > 0 && (
-                    <p className="text-xs text-primary mt-2 line-clamp-1">{movie.genres.slice(0, 2).join(', ')}</p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-foreground text-sm line-clamp-2">{movie.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{movie.year || 'N/A'}</p>
+                    <div className="flex items-center gap-1 mt-2">
+                      <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs text-muted-foreground">{movie.rating.toFixed(1)}</span>
+                    </div>
+                    {movie.genres.length > 0 && (
+                      <p className="text-xs text-primary mt-2 line-clamp-1">{movie.genres.slice(0, 2).join(', ')}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
