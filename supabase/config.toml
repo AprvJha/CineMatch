@@ -1,1 +1,4 @@
 project_id = "apythqmfukemxmlnyxbm"
+
+[functions.tmdb-poster]
+verify_jwt = false

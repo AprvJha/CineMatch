@@ -2,6 +2,8 @@
  * Movie data utilities for parsing CSV dataset
  */
 
+import { supabase } from "@/integrations/supabase/client";
+
 export interface CSVMovie {
   id: number;
   title: string;
@@ -94,7 +96,7 @@ export async function loadMoviesFromCSV(): Promise<Movie[]> {
         title,
         genres: parseGenres(values[genresIdx] || '[]'),
         rating: parseFloat(values[voteAvgIdx]) || 0,
-        posterUrl: 'https://image.tmdb.org/t/p/w500/placeholder.jpg',
+        posterUrl: '',
         year,
         overview: values[overviewIdx] || '',
       });
@@ -105,4 +107,32 @@ export async function loadMoviesFromCSV(): Promise<Movie[]> {
     console.error('Error loading movies CSV:', error);
     return [];
   }
+}
+
+// Fetch poster URLs from TMDB via edge function
+export async function fetchMoviePosters(movieIds: number[]): Promise<Map<number, string>> {
+  const posterMap = new Map<number, string>();
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('tmdb-poster', {
+      body: { movieIds },
+    });
+
+    if (error) {
+      console.error('Error fetching posters:', error);
+      return posterMap;
+    }
+
+    if (data?.posters) {
+      for (const poster of data.posters) {
+        if (poster.posterUrl) {
+          posterMap.set(poster.id, poster.posterUrl);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error invoking tmdb-poster function:', error);
+  }
+  
+  return posterMap;
 }
