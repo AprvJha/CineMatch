@@ -1,73 +1,185 @@
-# Welcome to your Lovable project
+🎬 CineMatch — Hybrid Movie Recommendation System
 
-## Project info
+CineMatch is a Hybrid Movie Recommendation System that delivers personalized movie recommendations by combining
+Content-Based Filtering and Collaborative Filtering (SVD).
+The system uses real-world datasets and a Python-based machine learning backend, integrated with a modern React frontend.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+🚀 Key Features
 
-## How can I edit this code?
+🎯 Hybrid Recommendation Engine
 
-There are several ways of editing your application.
+Content-based filtering using TF-IDF and cosine similarity
 
-**Use Lovable**
+Collaborative filtering using SVD (matrix factorization)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+👤 User-personalized recommendations
 
-Changes made via Lovable will be committed automatically to this repo.
+⚡ FastAPI backend for real-time ML inference
 
-**Use your preferred IDE**
+🎨 Modern UI built with React, Vite, Tailwind CSS, and shadcn/ui
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+📊 Model evaluation using RMSE
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+🧪 Trained on real-world MovieLens and TMDB datasets
 
-Follow these steps:
+🔗 Fully integrated frontend and backend (no mock data)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+🧠 System Architecture
+Frontend (React + Vite)
+        |
+        |  HTTP API Call
+        v
+Backend (FastAPI)
+        |
+        |  Hybrid Recommendation Logic
+        v
+Content-Based Filtering + Collaborative Filtering (SVD)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+The frontend handles user interaction and visualization.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+The backend performs all recommendation computations using trained ML models.
+
+📁 Project Structure
+cinema-ai/
+├── backend/        # Python ML backend
+│   ├── api.py
+│   ├── hybrid.py
+│   ├── requirements.txt
+│   ├── models/
+│   │   └── README.md
+│   └── data/
+│       └── README.md
+│
+├── src/            # React frontend source code
+├── public/         # Static frontend assets
+├── index.html
+├── package.json
+└── README.md       # This file
+
+🧩 Backend Details
+🔧 Tech Stack
+
+Python
+
+FastAPI
+
+Pandas, NumPy
+
+Scikit-learn
+
+Surprise (SVD)
+
+▶️ How to Run Backend
+cd backend
+pip install -r requirements.txt
+uvicorn api:app --reload
+
+
+Backend runs at:
+
+http://127.0.0.1:8000
+
+📡 API Endpoint
+Get Movie Recommendations
+GET /recommend
+
+
+Query Parameters
+
+user_id → User ID from MovieLens dataset
+
+movie → Movie title selected by the user
+
+Example Request
+
+http://127.0.0.1:8000/recommend?user_id=1&movie=Avatar
+
+
+Example Response
+
+{
+  "recommendations": [
+    "Aliens",
+    "Titanic",
+    "The Abyss",
+    "Prometheus",
+    "Avatar: The Way of Water"
+  ]
+}
+
+🎨 Frontend Details
+🔧 Tech Stack
+
+React
+
+Vite
+
+TypeScript
+
+Tailwind CSS
+
+shadcn/ui
+
+▶️ How to Run Frontend
+npm install
 npm run dev
-```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Frontend runs at:
 
-**Use GitHub Codespaces**
+http://localhost:8080
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+📊 Model Accuracy
 
-## What technologies are used for this project?
+Metric: RMSE (Root Mean Squared Error)
 
-This project is built with:
+Value: ~0.94
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+An RMSE below 1 indicates that the predicted ratings differ from actual ratings by less than one star on average, which is considered good performance for sparse recommendation datasets.
 
-## How can I deploy this project?
+📦 Datasets Used
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+This project is trained and evaluated using real datasets only.
 
-## Can I connect a custom domain to my Lovable project?
+🎞 MovieLens 100K Dataset
 
-Yes, you can!
+Used for collaborative filtering (user–movie ratings)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Source:
+https://www.kaggle.com/datasets/prajitdatta/movielens-100k-dataset
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+🎬 TMDB 5000 Movies Dataset
+
+Used for content-based filtering (movie metadata)
+
+Includes movie overviews, genres, cast, crew, and keywords
+
+Source:
+https://www.kaggle.com/datasets/tmdb/tmdb-movie-metadata/data
+
+📦 Model & Data Files
+
+Trained model files (.pkl) and large datasets are not included in the repository due to GitHub file size limitations.
+
+All source code required to recreate the models locally is provided.
+
+Refer to:
+
+backend/models/README.md
+
+backend/data/README.md
+
+🎓 Academic Notes
+
+This project demonstrates:
+
+Real-world recommendation system design
+
+Hybrid machine learning approach
+
+Frontend–backend integration
+
+All recommendations are generated using trained ML models
+
+No mock data is used in either backend or frontend
