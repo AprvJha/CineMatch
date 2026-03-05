@@ -25,10 +25,10 @@ The application follows a client-server architecture where the frontend communic
 
 ```mermaid
 graph TD
-    A[Frontend (React + Vite)] -->|HTTP GET /recommend| B[Backend (FastAPI)]
+    A["Frontend (React + Vite)"] -->|HTTP GET /recommend| B["Backend (FastAPI)"]
     B --> C{Hybrid Logic}
-    C -->|Metadata Matching| D[Content-Based (TF-IDF)]
-    C -->|User Patterns| E[Collaborative (SVD)]
+    C -->|Metadata Matching| D["Content-Based (TF-IDF)"]
+    C -->|User Patterns| E["Collaborative (SVD)"]
     D & E --> F[Weighted Hybrid Score]
     F -->|JSON Response| A
 ```
