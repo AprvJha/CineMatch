@@ -2,10 +2,11 @@ import pickle
 
 # Load models
 movies = pickle.load(open("models/content_model.pkl", "rb"))
-similarity = pickle.load(open("models/similarity.pkl", "rb"))
+top_neighbors = pickle.load(open("models/top_neighbors.pkl", "rb"))
 svd = pickle.load(open("models/svd_model.pkl", "rb"))
 
 movies["title"] = movies["title"].str.lower().str.strip()
+
 
 def content_candidates(movie_title, k=15):
     movie_title = movie_title.lower().strip()
@@ -14,10 +15,12 @@ def content_candidates(movie_title, k=15):
         return []
 
     idx = movies[movies["title"] == movie_title].index[0]
-    scores = list(enumerate(similarity[idx]))
-    scores = sorted(scores, key=lambda x: x[1], reverse=True)[1:k+1]
 
-    return [movies.iloc[i[0]] for i in scores]
+    # Get precomputed neighbors
+    neighbors = top_neighbors.get(idx, [])[:k]
+
+    return [movies.iloc[i] for i in neighbors]
+
 
 def hybrid_recommend(user_id, movie_title, k=5):
     candidates = content_candidates(movie_title)
@@ -28,4 +31,5 @@ def hybrid_recommend(user_id, movie_title, k=5):
         ranked.append((row["title"], est))
 
     ranked.sort(key=lambda x: x[1], reverse=True)
+
     return [i[0].title() for i in ranked[:k]]
