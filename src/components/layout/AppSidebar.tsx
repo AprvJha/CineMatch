@@ -65,7 +65,7 @@ export const AppSidebar = () => {
             </div>
             {isOpen && (
               <span className="font-bold text-lg text-foreground animate-fade-in">
-                WatchWise
+                WatchWiz
               </span>
             )}
           </Link>

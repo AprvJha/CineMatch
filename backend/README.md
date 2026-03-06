@@ -1,6 +1,6 @@
-# WatchWise Backend
+# WatchWiz Backend
 
-This folder contains the Python backend for the WatchWise Hybrid Movie Recommendation System.
+This folder contains the Python backend for the WatchWiz Hybrid Movie Recommendation System.
 
 ## Tech Stack
 - Python
