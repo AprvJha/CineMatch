@@ -1,6 +1,6 @@
-# 🎬 WatchWise — Hybrid Movie Recommendation System
+# 🎬 WatchWiz — Hybrid Movie Recommendation System
 
-**WatchWise** is a robust Hybrid Movie Recommendation System that delivers personalised movie suggestions by seamlessly combining **Content-Based Filtering** and **Collaborative Filtering (SVD)**. 
+**WatchWiz** is a robust Hybrid Movie Recommendation System that delivers personalised movie suggestions by seamlessly combining **Content-Based Filtering** and **Collaborative Filtering (SVD)**. 
 
 The system utilises real-world datasets (MovieLens & TMDB), a Python-based machine learning backend for inference, and a modern, responsive React frontend for visualisation.
 
